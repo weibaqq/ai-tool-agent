@@ -1,6 +1,4 @@
-from typing import Any
-
-from llm.client import chat_with_tools
+from app.llm.client import chat_with_tools
 
 def main():
     messages = [
