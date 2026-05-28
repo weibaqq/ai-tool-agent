@@ -1,5 +1,5 @@
 import os
-from typing import Any, final
+from typing import Any
 
 from dotenv import load_dotenv
 from openai import OpenAI
