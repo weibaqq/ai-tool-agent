@@ -1,6 +1,6 @@
-from app.llm.client import chat_with_tools
+from app.llm.chat_client import chat_with_tools
 
-def main():
+def run_tool_chat():
     messages = [
         {
             "role": "system",
@@ -32,6 +32,3 @@ def main():
         })
 
         print('AI:', answer)
-
-if __name__ == '__main__':
-    main()

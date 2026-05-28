@@ -1,7 +1,7 @@
 from app.llm.structured_client import analyze_text
 
 
-def main() -> None:
+def run_structured_output() -> None:
     print("Structured Output Demo started. Type 'exit' to quit.")
 
     while True:
@@ -23,6 +23,3 @@ def main() -> None:
         print("Sentiment:", result.sentiment.value)
         print("Keywords:", ", ".join(result.keywords))
         print("Action Required:", result.action_required)
-
-if __name__ == "__main__":
-    main()

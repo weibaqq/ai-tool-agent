@@ -4,15 +4,18 @@ from collections.abc import Generator
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from app.config import get_settings
+
+settings = get_settings()
 
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("DS_BASE_URL"),
+    api_key=settings.api_key,
+    base_url=settings.base_url,
 )
 
-model = os.getenv("MODEL_V4_FLASH")
+model = settings.model
 
 def stream_chat(messages: list[dict[str, Any]]) -> Generator[str, None, None]:
     """
@@ -27,7 +30,7 @@ def stream_chat(messages: list[dict[str, Any]]) -> Generator[str, None, None]:
         model=model,
         messages=messages,
         stream=True,
-        temperature=0.7
+        temperature=settings.temperature,
     )
 
     for chunk in stream:

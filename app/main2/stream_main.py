@@ -3,7 +3,7 @@ from typing import Any
 from app.llm.stream_client import stream_chat
 
 
-def main() -> None:
+def run_stream_chat() -> None:
     messages: list[dict[str, Any]] = [
         {
             "role": "system",
@@ -45,6 +45,3 @@ def main() -> None:
             "role": "assistant",
             "content": assistant_reply,
         })
-
-if __name__ == "__main__":
-    main()

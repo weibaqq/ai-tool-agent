@@ -5,22 +5,24 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from app.tools.registry import TOOL_SCHEMAS, execute_tool
+from app.config import get_settings
+
+settings = get_settings()
 
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("DS_BASE_URL"),
+    api_key=settings.api_key,
+    base_url=settings.base_url,
 )
 
-model = os.getenv("MODEL_V4_FLASH")
 def chat_with_tools(messages: list[dict[str, Any]]) -> str:
     first_res = client.chat.completions.create(
-        model=model,
+        model=settings.model,
         messages=messages,
         tools=TOOL_SCHEMAS,
         tool_choice="auto",
-        temperature=0.3
+        temperature=settings.temperature,
     )
 
     assistant_msg = first_res.choices[0].message
@@ -44,9 +46,9 @@ def chat_with_tools(messages: list[dict[str, Any]]) -> str:
         })
 
     final_res = client.chat.completions.create(
-        model=model,
+        model=settings.model,
         messages=messages,
-        temperature=0.3
+        temperature=settings.temperature,
     )
 
     return final_res.choices[0].message.content or ''

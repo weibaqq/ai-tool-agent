@@ -7,15 +7,18 @@ from openai import BadRequestError, OpenAI
 from pydantic import ValidationError
 
 from app.schemas.analysis import TextAnalysisResult
+from app.config import get_settings
+
+settings = get_settings()
 
 load_dotenv()
 
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("DS_BASE_URL"),
+    api_key=settings.api_key,
+    base_url=settings.base_url,
 )
 
-model = os.getenv("MODEL_V4_FLASH")
+model = settings.model
 
 # DeepSeek API 支持的 response_format 选项：
 #
@@ -83,7 +86,7 @@ def analyze_text(text: str) -> TextAnalysisResult:
             model=model,
             messages=messages,
             response_format=_ANALYSIS_SCHEMA,
-            temperature=0.2
+            temperature=settings.temperature,
         )
     except BadRequestError as exc:
         if "response_format" not in str(exc):
@@ -91,7 +94,7 @@ def analyze_text(text: str) -> TextAnalysisResult:
         res = client.chat.completions.create(
             model=model,
             messages=messages,
-            temperature=0.2
+            temperature=settings.temperature,
         )
 
     content = res.choices[0].message.content
