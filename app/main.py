@@ -1,30 +1,14 @@
-from app.main2.chat_main import run_tool_chat
-from app.main2.stream_main import run_stream_chat
-from app.main2.structured_output_main import run_structured_output
+from fastapi import FastAPI
+from app.api.chat import router as chat_router
 
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="AI Tool Agent API",
+        description="第一阶段 AI Tool Agent 的 FastAPI 服务版",
+        version="0.1.0",
+    )
 
+    app.include_router(chat_router)
+    return app
 
-def main():
-    while True:
-        print("\n请选择模式：")
-        print("1. Tool Chat")
-        print("2. Streaming Chat")
-        print("3. Structured Output")
-        print("0. Exit")
-
-        choice = input("Choice: ").strip()
-
-        if choice == "1":
-            run_tool_chat()
-        elif choice == "2":
-            run_stream_chat()
-        elif choice == "3":
-            run_structured_output()
-        elif choice == "0":
-            print("Bye!")
-            break
-        else:
-            print("无效选项，请重新输入。")
-
-if __name__ == "__main__":
-        main()
+app = create_app()
