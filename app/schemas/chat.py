@@ -20,3 +20,13 @@ class ChatResponse(BaseModel):
     answer: str = Field(
         description="AI 回复内容"
     )
+
+class StreamChatRequest(BaseModel):
+    session_id: str = Field(
+        min_length=1,
+        description="会话 ID，用于区分不同用户或不同对话"
+    )
+    message: str = Field(
+        min_length=1,
+        description="用户输入内容"
+    )
