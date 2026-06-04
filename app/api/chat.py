@@ -1,20 +1,24 @@
 import json
 from collections.abc import Generator
 
-from fastapi import APIRouter, HTTPException,status
+from fastapi import APIRouter, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 
+from app.core.response import ApiResponse, success_response
 from app.schemas.chat import ChatRequest, ChatResponse, StreamChatRequest
-from app.services.chat_service import chat_with_session,clear_session,chat_with_stream
+from app.services.chat_service import chat_with_session, clear_session, chat_with_stream
 
 router = APIRouter(
     prefix="/api",
     tags=["Chat"],
 )
+
+
 def _sse_event(data: dict) -> str:
     return f'data: {json.dumps(data, ensure_ascii=False)}\n\n'
 
-def _stream_response(session_id:str, message:str) -> Generator[str, None, None]:
+
+def _stream_response(session_id: str, message: str) -> Generator[str, None, None]:
     try:
         for token in chat_with_stream(session_id, message):
             yield _sse_event({
@@ -30,15 +34,18 @@ def _stream_response(session_id:str, message:str) -> Generator[str, None, None]:
             "type": "error",
             "content": str(exc),
         })
+
+
 @router.post(
     "/chat",
-    response_model=ChatResponse,
+    response_model=ApiResponse[ChatResponse],
     summary="多轮对话 Chat API",
 )
-def chat(request: ChatRequest)-> ChatResponse:
+def chat(request: Request, request_body: ChatRequest) -> ApiResponse[ChatResponse]:
     try:
-        answer = chat_with_session(request.session_id, request.message)
-        return ChatResponse(session_id=request.session_id, answer=answer)
+        answer = chat_with_session(request_body.session_id, request_body.message)
+        return success_response(data=ChatResponse(session_id=request_body.session_id, answer=answer),
+                                request_id=getattr(request.state, 'request_id', None))
     except ValueError as exc:
         raise HTTPException(
             status_code=400,
@@ -50,11 +57,12 @@ def chat(request: ChatRequest)-> ChatResponse:
             detail=f"AI 服务调用失败：{exc}",
         ) from exc
 
+
 @router.post(
     "/chat/stream",
     summary="流式多轮对话 Chat API",
 )
-def chat(request: StreamChatRequest)-> StreamingResponse:
+def chat(request: StreamChatRequest) -> StreamingResponse:
     try:
         return StreamingResponse(
             _stream_response(request.session_id, request.message),
@@ -77,7 +85,7 @@ def chat(request: StreamChatRequest)-> StreamingResponse:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="清空指定会话",
 )
-def delete_session(session_id:str) -> None:
+def delete_session(session_id: str) -> None:
     if not session_id.strip():
         raise ValueError("session_id <UNK>")
     try:
