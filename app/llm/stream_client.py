@@ -1,23 +1,22 @@
-import os
-from typing import Any
-from collections.abc import Generator
+from typing import Any, AsyncGenerator
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
+
 from app.config import get_settings
 
 settings = get_settings()
 
 load_dotenv()
 
-client = OpenAI(
+client = AsyncOpenAI(
     api_key=settings.api_key,
     base_url=settings.base_url,
 )
 
 model = settings.model
 
-def stream_chat(messages: list[dict[str, Any]]) -> Generator[str, None, None]:
+async def stream_chat(messages: list[dict[str, Any]]) -> AsyncGenerator[str, None]:
     """
     Stream chat completion tokens from OpenAI.
 
@@ -26,14 +25,14 @@ def stream_chat(messages: list[dict[str, Any]]) -> Generator[str, None, None]:
     """
     if not messages:
         raise ValueError("No messages received")
-    stream = client.chat.completions.create(
+    stream = await client.chat.completions.create(
         model=model,
         messages=messages,
         stream=True,
         temperature=settings.temperature,
     )
 
-    for chunk in stream:
+    async for chunk in stream:
         if not chunk.choices:
             continue
 

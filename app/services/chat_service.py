@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Any
+from typing import Any, AsyncGenerator
 
 from app.llm.chat_client import chat_with_tools
 from app.llm.stream_client import stream_chat
@@ -34,30 +34,30 @@ def build_messages(session_id: str) -> list[dict[str, Any]]:
         *history,
     ]
 
-def chat_with_session(session_id:str, user_message: str) -> str:
+async def chat_with_session(session_id:str, user_message: str) -> str:
     clean_session_id, clean_user_message = _validate_input(session_id, user_message)
 
     session_store.add_session(clean_session_id, 'user', clean_user_message)
 
     messages = build_messages(clean_session_id)
 
-    answer = chat_with_tools(messages)
+    answer = await chat_with_tools(messages)
 
     session_store.add_session(clean_session_id, 'assistant', answer)
     return answer
 
-def chat_with_stream(session_id:str, user_message: str) -> Generator[str, None, None]:
+async def chat_with_stream(session_id:str, user_message: str) -> AsyncGenerator[str, None]:
     clean_session_id, clean_user_message = _validate_input(session_id, user_message)
     session_store.add_session(clean_session_id, 'user', user_message)
     messages = build_messages(clean_session_id)
     assistant_reply = ''
-    for token in stream_chat(messages):
+    async for token in stream_chat(messages):
         assistant_reply += token
         yield token
     session_store.add_session(clean_session_id, 'assistant', assistant_reply)
 
 
-def clear_session(session_id:str) -> None:
+async def clear_session(session_id:str) -> None:
     if not session_id.strip():
         raise ValueError("session_id 不能为空")
 

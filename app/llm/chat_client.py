@@ -1,23 +1,22 @@
-import os
 from typing import Any
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 
-from app.tools.registry import TOOL_SCHEMAS, execute_tool
 from app.config import get_settings
+from app.tools.registry import TOOL_SCHEMAS, execute_tool
 
 settings = get_settings()
 
 load_dotenv()
 
-client = OpenAI(
+client = AsyncOpenAI(
     api_key=settings.api_key,
     base_url=settings.base_url,
 )
 
-def chat_with_tools(messages: list[dict[str, Any]]) -> str:
-    first_res = client.chat.completions.create(
+async def chat_with_tools(messages: list[dict[str, Any]]) -> str:
+    first_res = await client.chat.completions.create(
         model=settings.model,
         messages=messages,
         tools=TOOL_SCHEMAS,
@@ -45,7 +44,7 @@ def chat_with_tools(messages: list[dict[str, Any]]) -> str:
             "content": tool_result,
         })
 
-    final_res = client.chat.completions.create(
+    final_res = await client.chat.completions.create(
         model=settings.model,
         messages=messages,
         temperature=settings.temperature,

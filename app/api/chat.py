@@ -1,5 +1,5 @@
 import json
-from collections.abc import Generator
+from typing import AsyncGenerator
 
 from fastapi import APIRouter, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
@@ -18,9 +18,9 @@ def _sse_event(data: dict) -> str:
     return f'data: {json.dumps(data, ensure_ascii=False)}\n\n'
 
 
-def _stream_response(session_id: str, message: str) -> Generator[str, None, None]:
+async def _stream_response(session_id: str, message: str) -> AsyncGenerator[str, None]:
     try:
-        for token in chat_with_stream(session_id, message):
+        async for token in chat_with_stream(session_id, message):
             yield _sse_event({
                 "type": "token",
                 "content": token,
@@ -41,9 +41,9 @@ def _stream_response(session_id: str, message: str) -> Generator[str, None, None
     response_model=ApiResponse[ChatResponse],
     summary="多轮对话 Chat API",
 )
-def chat(request: Request, request_body: ChatRequest) -> ApiResponse[ChatResponse]:
+async def chat(request: Request, request_body: ChatRequest) -> ApiResponse[ChatResponse]:
     try:
-        answer = chat_with_session(request_body.session_id, request_body.message)
+        answer = await chat_with_session(request_body.session_id, request_body.message)
         return success_response(data=ChatResponse(session_id=request_body.session_id, answer=answer),
                                 request_id=getattr(request.state, 'request_id', None))
     except ValueError as exc:
@@ -62,7 +62,7 @@ def chat(request: Request, request_body: ChatRequest) -> ApiResponse[ChatRespons
     "/chat/stream",
     summary="流式多轮对话 Chat API",
 )
-def chat(request: StreamChatRequest) -> StreamingResponse:
+async def chat(request: StreamChatRequest) -> StreamingResponse:
     try:
         return StreamingResponse(
             _stream_response(request.session_id, request.message),
@@ -85,11 +85,11 @@ def chat(request: StreamChatRequest) -> StreamingResponse:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="清空指定会话",
 )
-def delete_session(session_id: str) -> None:
+async def delete_session(session_id: str) -> None:
     if not session_id.strip():
         raise ValueError("session_id <UNK>")
     try:
-        clear_session(session_id)
+        await clear_session(session_id)
     except ValueError as exc:
         raise HTTPException(
             status_code=400,
