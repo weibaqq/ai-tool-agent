@@ -23,8 +23,8 @@ def _validate_input(
     return clean_session_id, clean_user_message
 
 
-def build_messages(session_id: str) -> list[dict[str, Any]]:
-    history = session_store.get_session(session_id)
+async def build_messages(session_id: str) -> list[dict[str, Any]]:
+    history = await session_store.get_session(session_id)
 
     return [
         {
@@ -37,28 +37,28 @@ def build_messages(session_id: str) -> list[dict[str, Any]]:
 async def chat_with_session(session_id:str, user_message: str) -> str:
     clean_session_id, clean_user_message = _validate_input(session_id, user_message)
 
-    session_store.add_session(clean_session_id, 'user', clean_user_message)
+    await session_store.add_session(clean_session_id, 'user', clean_user_message)
 
-    messages = build_messages(clean_session_id)
+    messages = await build_messages(clean_session_id)
 
     answer = await chat_with_tools(messages)
 
-    session_store.add_session(clean_session_id, 'assistant', answer)
+    await session_store.add_session(clean_session_id, 'assistant', answer)
     return answer
 
 async def chat_with_stream(session_id:str, user_message: str) -> AsyncGenerator[str, None]:
     clean_session_id, clean_user_message = _validate_input(session_id, user_message)
-    session_store.add_session(clean_session_id, 'user', user_message)
-    messages = build_messages(clean_session_id)
+    await session_store.add_session(clean_session_id, 'user', user_message)
+    messages = await build_messages(clean_session_id)
     assistant_reply = ''
     async for token in stream_chat(messages):
         assistant_reply += token
         yield token
-    session_store.add_session(clean_session_id, 'assistant', assistant_reply)
+    await session_store.add_session(clean_session_id, 'assistant', assistant_reply)
 
 
 async def clear_session(session_id:str) -> None:
     if not session_id.strip():
         raise ValueError("session_id 不能为空")
 
-    session_store.remove_session(session_id.strip())
+    await session_store.remove_session(session_id.strip())
