@@ -49,7 +49,7 @@ class RedisSessionStore(SessionStore):
         return messages
 
     async def add_session(self, session_id: str, role: str, content: str) -> None:
-        if role not in {'user', 'assistant', 'tool'}:
+        if role not in {'user', 'assistant'}:
             raise ValueError('role must be either "user", "assistant" or "tool"')
         if not content:
             raise ValueError('content cannot be empty')
@@ -81,7 +81,7 @@ class RedisSessionStore(SessionStore):
         role = message.get('role')
         content = message.get('content')
         return (
-            role in {'user', 'assistant', 'tool'}
+            role in {'user', 'assistant'}
             and isinstance(content, str)
         )
 
