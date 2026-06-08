@@ -60,7 +60,7 @@ class TollAgentRunner:
 
     def __init__(self):
         self._workflow = build_tool_agent_graph()
-        self._stream_workflow = build_tool_agent_graph()
+        self._stream_workflow = build_tool_agent_graph(streaming=True)
 
     def run(self, messages: list[BaseMessage]) -> str:
         result = self._workflow.invoke({
