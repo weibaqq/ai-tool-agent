@@ -27,10 +27,10 @@ class ToolAgentState(TypedDict):
     """
     messages: Annotated[list[BaseMessage], add_messages]
 
-def build_tool_agent_graph():
+def build_tool_agent_graph(streaming: bool = False):
     tools = get_agent_tools()
 
-    llm = build_chat_model()
+    llm = build_chat_model(streaming)
     llm_with_tools = llm.bind_tools(tools)
 
     def agent_node(state: ToolAgentState) -> dict[str, list[BaseMessage]]:

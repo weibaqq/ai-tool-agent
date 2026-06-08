@@ -20,3 +20,14 @@ class AgentChatResponse(BaseModel):
     answer: str = Field(
         description="AI 回复内容"
     )
+
+
+class AgentStreamChatRequest(BaseModel):
+    session_id: str = Field(
+        min_length=1,
+        description="会话 ID，用于区分不同 Agent 流式对话"
+    )
+    message: str = Field(
+        min_length=1,
+        description="用户输入内容"
+    )

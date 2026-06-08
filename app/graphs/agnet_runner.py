@@ -1,11 +1,15 @@
+from collections.abc import AsyncGenerator
+
 from langchain_core.messages import (
     AIMessage,
     SystemMessage,
     HumanMessage,
     BaseMessage,
+    AIMessageChunk
 )
 
 from app.graphs.tool_agent_graph import build_tool_agent_graph, SYSTEM_PROMPT
+
 
 def build_messages_form_history(
         history: list[dict],
@@ -27,6 +31,7 @@ def build_messages_form_history(
     messages.append(HumanMessage(content=user_message))
     return messages
 
+
 def extract_final_message(
         messages: list[BaseMessage],
 ) -> str:
@@ -34,6 +39,7 @@ def extract_final_message(
         if isinstance(message, AIMessage) and message.content:
             return str(message.content)
     return ''
+
 
 class TollAgentRunner:
     """
@@ -51,13 +57,35 @@ class TollAgentRunner:
     - request_id
     - API response
     """
+
     def __init__(self):
-        self.workflow = build_tool_agent_graph()
+        self._workflow = build_tool_agent_graph()
+        self._stream_workflow = build_tool_agent_graph()
 
     def run(self, messages: list[BaseMessage]) -> str:
-        result = self.workflow.invoke({
+        result = self._workflow.invoke({
             'messages': messages,
         })
         return extract_final_message(result['messages'])
+
+    async def stream_run(self, messages: list[BaseMessage]) -> AsyncGenerator[str, None]:
+        """
+        流式执行 LangGraph Agent。
+
+        使用 stream_mode="messages"：
+        - 可以拿到 LLM token chunk
+        - Tool 调用过程中的中间消息会被 LangGraph 处理
+        - 我们只向外暴露最终可展示 token
+        """
+        async for message_chunk, metadata in self._stream_workflow.astream({
+            'messages': messages,
+        }, stream_mode = 'messages'):
+            if not isinstance(message_chunk, AIMessageChunk):
+                continue
+            content = message_chunk.content
+            if not content:
+                continue
+            if isinstance(content, str):
+                yield content
 
 tool_agent_runner = TollAgentRunner()
