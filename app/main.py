@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from app.api.chat import router as chat_router
 from app.api.health import router as health_router
 from app.api.agent import router as agent_router
+from app.api.checkpoint_agent import router as checkpoint_agent_router
 from app.core.exception import AppException, ValidationException
 from app.core.middleware import request_context_middleware
 from app.core.response import error_message
@@ -27,6 +28,7 @@ def create_app() -> FastAPI:
     app.include_router(chat_router)
     app.include_router(health_router)
     app.include_router(agent_router)
+    app.include_router(checkpoint_agent_router)
     register_exception_handlers(app)
 
     return app

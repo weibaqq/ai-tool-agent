@@ -5,10 +5,10 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from typing_extensions import TypedDict
+from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from app.llm.langchain_client import build_chat_model
 from app.tools.langgraph_tools import get_agent_tools
-
 
 SYSTEM_PROMPT = (
     "你是一个专业的 AI Tool Agent。"
@@ -16,6 +16,7 @@ SYSTEM_PROMPT = (
     "如果不需要工具，则直接回答。"
     "回答要简洁、准确。"
 )
+
 
 class ToolAgentState(TypedDict):
     """
@@ -27,7 +28,8 @@ class ToolAgentState(TypedDict):
     """
     messages: Annotated[list[BaseMessage], add_messages]
 
-def build_tool_agent_graph(streaming: bool = False):
+
+def build_tool_agent_graph(streaming: bool = False, checkpointer: BaseCheckpointSaver | None = None):
     tools = get_agent_tools()
 
     llm = build_chat_model(streaming)
@@ -59,7 +61,8 @@ def build_tool_agent_graph(streaming: bool = False):
     graph.add_conditional_edges('agent', tools_condition,
                                 {'tools': 'tools', END: END})
     graph.add_edge('tools', 'agent')
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)
+
 
 def build_initial_messages(user_input: str) -> list[BaseMessage]:
     return [
