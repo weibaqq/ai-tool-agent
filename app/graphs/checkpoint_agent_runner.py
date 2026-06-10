@@ -71,10 +71,10 @@ class CheckpointAgentRunner:
         self._stream_workflow = build_tool_agent_graph(streaming=True, checkpointer=self._checkpointer)
 
     def run(self, thread_id: str, user_message: str) -> str:
-        result = self._workflow.invoke({
+        result = self._workflow.invoke(
             build_checkpoint_input_message(user_message),
-            build_thread_config(thread_id)
-        })
+            build_thread_config(thread_id),
+        )
         answer = extract_final_message(result['messages'])
         if not answer:
             raise RuntimeError('Agent 没有返回有效回答')

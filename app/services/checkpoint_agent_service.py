@@ -24,9 +24,11 @@ def _validate_input(
         thread_id: str,
         user_message: str
 ) -> tuple[str, str]:
+    if thread_id is None or user_message is None:
+        raise ValueError("thread_id or user_message cannot be empty")
     clean_thread_id = thread_id.strip()
     clean_user_message = user_message.strip()
-    if clean_thread_id is None or clean_user_message is None:
+    if not clean_thread_id or not clean_user_message:
         raise ValueError("thread_id 或 user_message 不能为空")
     return clean_thread_id, clean_user_message
 
