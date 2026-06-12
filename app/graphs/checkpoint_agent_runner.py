@@ -9,8 +9,7 @@ from langchain_core.messages import (
     AIMessageChunk
 )
 
-from langgraph.checkpoint.memory import InMemorySaver
-
+from app.infrastructure.checkpointer.provider import build_managed_checkpoint
 from app.graphs.tool_agent_graph import build_tool_agent_graph, SYSTEM_PROMPT
 from app.schemas.events import workflow_start_event, AgentEvent, workflow_end_event, token_event, node_update_event, \
     tool_start_event, tool_end_event
@@ -66,9 +65,13 @@ class CheckpointAgentRunner:
     """
 
     def __init__(self):
-        self._checkpointer = InMemorySaver()
+        self._checkpointer_manager = build_managed_checkpoint()
+        self._checkpointer = self._checkpointer_manager.checkpointer
         self._workflow = build_tool_agent_graph(streaming=False, checkpointer=self._checkpointer)
         self._stream_workflow = build_tool_agent_graph(streaming=True, checkpointer=self._checkpointer)
+
+    def close(self):
+        self._checkpointer_manager.close()
 
     def run(self, thread_id: str, user_message: str) -> str:
         result = self._workflow.invoke(

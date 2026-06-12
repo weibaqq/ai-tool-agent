@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -9,13 +10,18 @@ from app.api.checkpoint_agent import router as checkpoint_agent_router
 from app.core.exception import AppException, ValidationException
 from app.core.middleware import request_context_middleware
 from app.core.response import error_message
-
+from app.graphs.checkpoint_agent_runner import checkpoint_agent_runner
 
 def configure_logging() -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    checkpoint_agent_runner.close()
 
 def create_app() -> FastAPI:
     configure_logging()
