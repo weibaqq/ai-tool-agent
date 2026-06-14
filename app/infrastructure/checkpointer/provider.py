@@ -50,7 +50,7 @@ class PostgresCheckpointProvider:
         from langgraph.checkpoint.postgres import PostgresSaver
 
         return ContextManagedCheckpointer(
-            context_manager=PostgresSaver.from_conn_string(postgres_url=self._postgres_url),
+            context_manager=PostgresSaver.from_conn_string(self._postgres_url),
             auto_setup=self._auto_setup,
         )
 

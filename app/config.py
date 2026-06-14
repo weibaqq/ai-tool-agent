@@ -26,6 +26,13 @@ class Settings:
     checkpoint_auto_setup: bool
 
 
+def _get_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def get_settings() -> Settings:
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
@@ -48,5 +55,5 @@ def get_settings() -> Settings:
         checkpoint_backend=checkpoint_backend,
         checkpoint_postgres_url=os.getenv('CHECKPOINT_POSTGRES_URL'),
         checkpoint_redis_url=os.getenv('CHECKPOINT_REDIS_URL'),
-        checkpoint_auto_setup=os.getenv('CHECKPOINT_AUTO_SETUP', True),
+        checkpoint_auto_setup=_get_bool('CHECKPOINT_AUTO_SETUP', True),
     )

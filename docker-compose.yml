@@ -31,7 +31,7 @@ services:
     image: postgres:16-alpine
     container_name: ai-tool-agent-postgres
     ports:
-      - "5342:5342"
+      - "5342:5432"
     environment:
       POSTGRES_DB: ai_tool_agent
       POSTGRES_USER: postgres
