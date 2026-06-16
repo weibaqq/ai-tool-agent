@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 
 from app.core.exception import AIServiceException, ValidationException
 from app.core.response import ApiResponse, success_response
+from app.schemas.approval_audit_log import ApprovalAuditLogListResponse
 from app.schemas.multi_approval import (
     MultiApprovalDecisionRequest,
     MultiApprovalDecisionResponse,
@@ -12,7 +13,7 @@ from app.schemas.multi_approval import (
 from app.services.multi_approval_service import (
     approve_multi_approval_agent,
     get_multi_approval_state,
-    run_multi_approval_agent,
+    run_multi_approval_agent, list_multi_approval_audit_logs,
 )
 
 
@@ -65,11 +66,12 @@ async def approve(
             decision=request_body.decision,
             comment=request_body.comment,
             approver=request_body.approver,
+            request_id=_get_request_id(request),
         )
 
         return success_response(
             data=result,
-            request_id=getattr(request.state, "request_id", None),
+            request_id=_get_request_id(request),
         )
 
     except ValueError as exc:
@@ -101,3 +103,29 @@ async def state(
 
     except Exception as exc:
         raise AIServiceException(str(exc)) from exc
+
+@router.get(
+    "/audit-logs/{thread_id}",
+    response_model=ApiResponse[ApprovalAuditLogListResponse],
+    summary="查询多级审批审计日志",
+)
+async def audit_logs(
+    thread_id: str,
+    request: Request,
+) -> ApiResponse[ApprovalAuditLogListResponse]:
+    try:
+        result = await list_multi_approval_audit_logs(thread_id)
+
+        return success_response(
+            data=result,
+            request_id=_get_request_id(request),
+        )
+
+    except ValueError as exc:
+        raise ValidationException(str(exc)) from exc
+
+    except Exception as exc:
+        raise AIServiceException(str(exc)) from exc
+
+def _get_request_id(request: Request) -> str | None:
+    return getattr(request.state, "request_id", None)

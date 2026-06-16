@@ -12,6 +12,7 @@ from app.api.multi_approval_agent import router as multi_approval_agent_router
 from app.core.exception import AppException, ValidationException
 from app.core.middleware import request_context_middleware
 from app.core.response import error_message
+from app.db.postgres import init_postgres_schema
 from app.graphs.checkpoint_agent_runner import checkpoint_agent_runner
 from app.graphs.hil_agent_runner import hil_agent_runner
 from app.graphs.multi_approval_runner import multi_approval_runner
@@ -24,6 +25,7 @@ def configure_logging() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_postgres_schema()
     yield
     checkpoint_agent_runner.close()
     hil_agent_runner.close()

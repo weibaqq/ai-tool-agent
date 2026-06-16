@@ -24,6 +24,7 @@ class Settings:
     checkpoint_postgres_url: str | None
     checkpoint_redis_url: str | None
     checkpoint_auto_setup: bool
+    postgres_url: str
 
 
 def _get_bool(name: str, default: bool) -> bool:
@@ -56,4 +57,5 @@ def get_settings() -> Settings:
         checkpoint_postgres_url=os.getenv('CHECKPOINT_POSTGRES_URL'),
         checkpoint_redis_url=os.getenv('CHECKPOINT_REDIS_URL'),
         checkpoint_auto_setup=_get_bool('CHECKPOINT_AUTO_SETUP', True),
+        postgres_url=os.getenv('POSTGRES_URL'),
     )
