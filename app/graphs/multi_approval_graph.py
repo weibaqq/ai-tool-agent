@@ -163,6 +163,13 @@ def reject_action_node(state: MultiApprovalState) -> dict[str, Any]:
         f"拒绝阶段：{reject_stage}\n"
         f"审批备注：{comment}"
     )
+    return {
+        'current_stage': '',
+        'final_answer': answer,
+        'messages': [
+            AIMessage(answer),
+        ]
+    }
 
 
 def build_multi_approval_graph(checkpointer):

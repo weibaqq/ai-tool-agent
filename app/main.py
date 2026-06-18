@@ -37,6 +37,7 @@ def create_app() -> FastAPI:
         title="AI Tool Agent API",
         description="AI Tool Agent FastAPI + LangGraph Service",
         version="0.3.0",
+        lifespan=lifespan,
     )
     app.middleware("http")(request_context_middleware)
     app.include_router(chat_router)

@@ -58,7 +58,7 @@ async def run_multi_approval_agent(
 def _get_requested_action_from_state(clean_thread_id):
     state_snapshot = multi_approval_runner.get_state(clean_thread_id)
     values = state_snapshot.values or {}
-    action = values.get("requested_action")
+    action = values.get("request_action")
     if isinstance(action, str) and action.strip():
         return action.strip()
     return 'unknown'
@@ -99,21 +99,21 @@ async def approve_multi_approval_agent(
     )
 
     if result.status == MultiApprovalStatus.REJECTED:
-        return MultiApprovalRunResponse(
+        return MultiApprovalDecisionResponse(
             thread_id=clean_thread_id,
             status=MultiApprovalStatus.REJECTED,
             answer=result.answer,
             current_stage=_to_approval_stage(result.current_stage),
         )
     if result.status == MultiApprovalStatus.WAITING_APPROVAL:
-        return MultiApprovalRunResponse(
+        return MultiApprovalDecisionResponse(
             thread_id=clean_thread_id,
             status=MultiApprovalStatus.WAITING_APPROVAL,
             answer="仍有待审批中断点未处理",
             current_stage=_to_approval_stage(result.current_stage),
             approval_request=result.interrupt_payload,
         )
-    return MultiApprovalRunResponse(
+    return MultiApprovalDecisionResponse(
         thread_id=clean_thread_id,
         status=MultiApprovalStatus.COMPLETED,
         answer=result.answer,
