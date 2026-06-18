@@ -7,10 +7,12 @@ from app.schemas.multi_approval import (
     MultiApprovalRunResponse,
     MultiApprovalStateResponse,
     MultiApprovalStatus,
-    MultiApprovalDecisionResponse
+    MultiApprovalDecisionResponse, ApprovalRole
 )
 from app.repositories.approval_audit_log_repository import approval_audit_log_repository
 from app.schemas.approval_audit_log import ApprovalAuditLogCreate,ApprovalAuditLogListResponse
+from app.policies.approval_permission_policy import approval_permission_policies
+from app.core.exception import PermissionDeniedException
 
 def _clean_required_text(
     value: str,
@@ -64,16 +66,53 @@ def _get_requested_action_from_state(clean_thread_id):
     return 'unknown'
 
 
+def _validate_approval_permission_or_raise(thread_id, stage, approver, approver_role, action, request_id)->None:
+    allowed = approval_permission_policies.can_approve(stage, approver_role)
+    if allowed:
+        return
+    denied_reason = approval_permission_policies.get_denied_reason(stage.value, approver_role.value)
+
+    approval_audit_log_repository.create(ApprovalAuditLogCreate(
+        thread_id=thread_id,
+        action=action,
+        request_id=request_id,
+        stage=stage.value,
+        decision='denied',
+        approver=approver,
+        approver_role=approver_role,
+        comment=denied_reason,
+        metadata={
+            "permission_result": "denied",
+            "reason": denied_reason,
+        },
+    ))
+    raise PermissionDeniedException(denied_reason)
+
+
+
 async def approve_multi_approval_agent(
         thread_id:str,
         stage: ApprovalStage,
         decision: ApprovalDecision,
-        comment: str = None,
-        approver: str = None,
+        comment: str | None,
+        approver: str,
+        approver_role: ApprovalRole,
         request_id: str | None = None,
 ) -> MultiApprovalDecisionResponse:
     clean_thread_id = _clean_required_text(thread_id, "thread_id")
+    clean_approver= _clean_required_text(thread_id, "approver")
+
     action = _get_requested_action_from_state(clean_thread_id)
+
+    _validate_approval_permission_or_raise(
+        thread_id=clean_thread_id,
+        stage=stage,
+        approver=clean_approver,
+        approver_role=approver_role,
+        action=action,
+        request_id=request_id,
+    )
+
     resume_payload : dict[str, Any] = {
         'decision': decision.value,
         'comment': comment,
@@ -88,10 +127,12 @@ async def approve_multi_approval_agent(
             stage=stage.value,
             decision=decision.value,
             approver=approver,
+            approver_role=approver_role,
             comment=comment,
             action=action,
             request_id=request_id,
             metadata={
+                "permission_result": "allowed",
                 'result_status': result.status,
                 'next_stage': result.current_stage,
             }

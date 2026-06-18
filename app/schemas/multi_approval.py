@@ -19,6 +19,10 @@ class ApprovalDecision(str, Enum):
     APPROVE = "approve"
     REJECT = "reject"
 
+class ApprovalRole(str, Enum):
+    BUSINESS_OWNER = "business_owner"
+    RISK_CONTROL = "risk_control"
+    ADMIN = "admin"
 
 class MultiApprovalRunRequest(BaseModel):
     thread_id: str = Field(
@@ -57,6 +61,10 @@ class MultiApprovalDecisionRequest(BaseModel):
     approver: str | None = Field(
         default=None,
         description="审批人标识",
+    )
+    approver_role: ApprovalRole | None = Field(
+        default=None,
+        description="审批人角色",
     )
 
 

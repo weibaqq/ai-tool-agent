@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from app.core.exception import AIServiceException, ValidationException
+from app.core.exception import AIServiceException, ValidationException,PermissionDeniedException
 from app.core.response import ApiResponse, success_response
 from app.schemas.approval_audit_log import ApprovalAuditLogListResponse
 from app.schemas.multi_approval import (
@@ -66,6 +66,7 @@ async def approve(
             decision=request_body.decision,
             comment=request_body.comment,
             approver=request_body.approver,
+            approver_role=request_body.approver_role,
             request_id=_get_request_id(request),
         )
 
@@ -76,6 +77,9 @@ async def approve(
 
     except ValueError as exc:
         raise ValidationException(str(exc)) from exc
+
+    except PermissionDeniedException:
+        raise
 
     except Exception as exc:
         raise AIServiceException(str(exc)) from exc

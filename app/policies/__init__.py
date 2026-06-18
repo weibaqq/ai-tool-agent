@@ -6,6 +6,7 @@ from app.policies.approval_policy import (
     is_approved,
     is_high_risk_action,
 )
+from app.policies.approval_permission_policy import approval_permission_policies
 
 __all__ = [
     "BUSINESS_REVIEW_POLICY",
@@ -14,4 +15,5 @@ __all__ = [
     "get_reject_comment",
     "is_approved",
     "is_high_risk_action",
+    "approval_permission_policies",
 ]

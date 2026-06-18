@@ -14,3 +14,8 @@ class AIServiceException(AppException):
     """AI 服务异常"""
     def __init__(self, message: str = 'AI 服务调用失败') -> None:
         super().__init__(message=message, status_code=500)
+
+class PermissionDeniedException(AppException):
+    """权限没通过"""
+    def __init__(self, message: str) -> None:
+        super().__init__(message=message, status_code=403)

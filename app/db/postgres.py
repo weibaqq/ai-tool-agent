@@ -30,6 +30,7 @@ def init_postgres_schema() -> None:
                     stage VARCHAR(64) NOT NULL,
                     decision VARCHAR(32) NOT NULL,
                     approver VARCHAR(128),
+                    approver_role VARCHAR(64), 
                     comment TEXT,
                     action TEXT NOT NULL,
                     request_id VARCHAR(128),
@@ -50,6 +51,7 @@ def init_postgres_schema() -> None:
                 COMMENT ON COLUMN approval_audit_logs.stage IS '审批阶段，例如 business_review、risk_review';
                 COMMENT ON COLUMN approval_audit_logs.decision IS '审批结论，例如 approve、reject';
                 COMMENT ON COLUMN approval_audit_logs.approver IS '审批人标识，例如用户名、用户 ID 或系统账号';
+                COMMENT ON COLUMN approval_audit_logs.approver_role IS '审批人角色，例如 business_owner、risk_control、admin';
                 COMMENT ON COLUMN approval_audit_logs.comment IS '审批备注，记录审批人填写的说明';
                 COMMENT ON COLUMN approval_audit_logs.action IS '被审批的原始操作内容，例如删除用户数据、清空订单等';
                 COMMENT ON COLUMN approval_audit_logs.request_id IS 'HTTP 请求链路 ID，用于日志追踪和问题排查';

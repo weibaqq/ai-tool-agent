@@ -9,6 +9,7 @@ class ApprovalAuditLogItem(BaseModel):
     stage: str
     decision: str
     approver: str | None = None
+    approver_role: str | None = None
     comment: str | None = None
     action: str
     request_id: str | None = None
@@ -21,6 +22,7 @@ class ApprovalAuditLogCreate(BaseModel):
     stage: str = Field(min_length=1)
     decision: str = Field(min_length=1)
     approver: str | None = None
+    approver_role: str | None = None
     comment: str | None = None
     action: str = Field(min_length=1)
     request_id: str | None = None
